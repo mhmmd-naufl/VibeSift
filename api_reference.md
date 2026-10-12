@@ -127,9 +127,14 @@ Endpoint inti: prompt → (AI) parameter → filter DB → buat playlist di Spot
     "min_energy": 0.2,
     "max_energy": 0.5,
     "min_acousticness": 0.7
-  }
+  },
+  "fallback_applied": false
 }
 ```
+
+> Jika filter AI menghasilkan < 15 lagu, backend melonggarkan filter bertahap
+> (buang batas tempo → instrumentalness → lebarkan range) dan mengembalikan
+> `fallback_applied: true`.
 
 **Error yang mungkin:**
 - `400` — Prompt kosong / tidak valid

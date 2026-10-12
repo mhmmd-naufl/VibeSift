@@ -37,3 +37,40 @@ async def select_tracks(
     """Return up to `limit` cached tracks matching the filters."""
     result = await session.execute(build_query(filters, limit))
     return list(result.scalars().all())
+
+
+MIN_TRACKS = 15
+
+
+def relax_filters(filters: AudioFilters, step: int) -> AudioFilters:
+    """Return a looser copy of `filters` for fallback `step` (1-based)."""
+    data = filters.model_dump()
+    for key in ("min_tempo", "max_tempo"):
+        data[key] = None
+    if step >= 2:
+        data["min_instrumentalness"] = None
+        data["max_instrumentalness"] = None
+    if step >= 3:
+        spread = 0.2 * (step - 2)
+        for key, value in data.items():
+            if value is None:
+                continue
+            if key.startswith("max_"):
+                data[key] = min(1.0, value + spread)
+            else:
+                data[key] = max(0.0, value - spread)
+    return AudioFilters.model_validate(data)
+
+
+async def select_tracks_with_fallback(
+    session: AsyncSession, filters: AudioFilters, limit: int = 30, minimum: int = MIN_TRACKS
+) -> tuple[list[CachedTrack], bool]:
+    """Select tracks, relaxing filters until `minimum` are found or given up."""
+    tracks = await select_tracks(session, filters, limit)
+    if len(tracks) >= minimum:
+        return tracks, False
+    for step in (1, 2, 3):
+        tracks = await select_tracks(session, relax_filters(filters, step), limit)
+        if len(tracks) >= minimum:
+            return tracks, True
+    return tracks, True

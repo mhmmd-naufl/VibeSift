@@ -29,7 +29,7 @@ async def generate_playlist(
     """Turn a prompt into a Spotify playlist and store the result."""
     plan = await ai.prompt_to_plan(payload.prompt, payload.provider, payload.model, ai_key)
     filters = AudioFilters.model_validate(plan.model_dump())
-    tracks = await playlist_service.select_tracks(session, filters)
+    tracks, fallback = await playlist_service.select_tracks_with_fallback(session, filters)
     if not tracks:
         raise NoTracksError("Tidak ada lagu yang cocok. Coba nyalakan sync atau ubah prompt.")
     user = await spotify.current_user(token)
@@ -37,7 +37,7 @@ async def generate_playlist(
         token, user["id"], plan.name, plan.description, [track.spotify_id for track in tracks]
     )
     await _save(session, created, plan, payload.prompt, len(tracks), user["id"])
-    return _response(created, plan, filters, len(tracks))
+    return _response(created, plan, filters, len(tracks), fallback)
 
 
 async def _save(
@@ -58,7 +58,9 @@ async def _save(
     await session.commit()
 
 
-def _response(created: dict, plan, filters: AudioFilters, count: int) -> PlaylistResponse:
+def _response(
+    created: dict, plan, filters: AudioFilters, count: int, fallback_applied: bool
+) -> PlaylistResponse:
     """Map a Spotify playlist and plan into the API response model."""
     return PlaylistResponse(
         playlist_id=created["id"],
@@ -67,6 +69,7 @@ def _response(created: dict, plan, filters: AudioFilters, count: int) -> Playlis
         track_count=count,
         spotify_url=created.get("external_urls", {}).get("spotify", ""),
         ai_parameters=filters,
+        fallback_applied=fallback_applied,
     )
 
 

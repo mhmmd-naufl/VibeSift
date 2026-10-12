@@ -44,6 +44,7 @@ export type PlaylistResponse = {
   track_count: number;
   spotify_url: string;
   ai_parameters: AudioFilters;
+  fallback_applied?: boolean;
 };
 
 export type PlaylistSummary = {

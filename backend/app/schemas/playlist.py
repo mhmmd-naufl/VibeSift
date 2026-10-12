@@ -24,6 +24,7 @@ class PlaylistResponse(BaseModel):
     track_count: int
     spotify_url: str
     ai_parameters: AudioFilters
+    fallback_applied: bool = False
 
 
 class PlaylistSummary(BaseModel):

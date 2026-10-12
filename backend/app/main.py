@@ -11,17 +11,13 @@ from fastapi.responses import JSONResponse
 from app.api import auth, playlist, stats, sync
 from app.core.config import get_settings
 from app.core.errors import VibeSiftError
-from app.db import Base, engine
-from app import models  # noqa: F401  # register ORM models before create_all
 
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    """Create database tables on startup."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """App lifespan. Tables are created via `alembic upgrade head`."""
     yield
 
 

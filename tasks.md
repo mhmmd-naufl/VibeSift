@@ -24,7 +24,7 @@ Breakdown task terurut untuk **vibecoding**. Kerjakan berurutan; setiap task har
 - [x] Frontend: Next.js (App Router, TypeScript, Tailwind)
 - [x] Install shadcn/ui-style components + Zustand + React Hook Form + Zod
 - [x] Buat `.env.example` (backend & frontend), pastikan `.env` masuk `.gitignore`
-- [ ] Setup SQLite + Alembic init _(saat ini tabel dibuat otomatis via `create_all`; Alembic menyusul)_
+- [x] Setup SQLite + Alembic init (`alembic upgrade head` → `0001_initial`)
 
 ## Phase 1: Backend Core
 
@@ -65,7 +65,7 @@ Breakdown task terurut untuk **vibecoding**. Kerjakan berurutan; setiap task har
 
 - [ ] Visual Mood Map (scatter plot Energy × Valence)
 - [ ] Auto-Clustering (1 klik → 5-10 playlist)
-- [ ] Smart Fallback (Spotify Recommendations jika hasil < 15 lagu)
+- [x] Smart Fallback (relaksasi filter jika hasil < 15 lagu + flag `fallback_applied`)
 - [ ] Prompt History & Templates (share via URL)
 - [ ] Dark/Light mode + i18n
 
