@@ -39,6 +39,16 @@ npm run dev
 
 Buka `http://127.0.0.1:3000` di browser. Kalau muncul halaman VibeSift berarti berhasil.
 
+> ⚠️ `main` baru diupdate (migrasi DB + fallback + README baru). Kalau kamu
+> sudah pernah clone SEBELUM hari ini, update dulu sebelum bikin branch:
+> ```bash
+> cd VibeSift
+> git checkout main
+> git pull origin main
+> git checkout -b feat/onboarding-modal
+> ```
+> Intinya: branch fitur WAJIB berangkat dari `main` yang paling baru.
+
 > Backend TIDAK perlu dijalankan untuk tugas ini.
 
 ## 3. Cara kerja tiap hari
