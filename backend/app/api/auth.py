@@ -1,5 +1,7 @@
 """Spotify OAuth routes."""
 
+from typing import Any
+
 from fastapi import APIRouter, Query
 from fastapi.responses import RedirectResponse
 
@@ -7,6 +9,14 @@ from app.schemas.auth import RefreshRequest, TokenResponse
 from app.services import spotify
 
 router = APIRouter(prefix="/api/auth/spotify", tags=["auth"])
+demo_router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+
+@demo_router.post("/demo", response_model=TokenResponse)
+async def demo_login() -> TokenResponse:
+    """Issue a demo session without any OAuth round-trip."""
+    token = await spotify.demo_session()
+    return await _token_response(token)
 
 
 @router.get("/login")
@@ -29,11 +39,12 @@ async def refresh(payload: RefreshRequest) -> TokenResponse:
     return await _token_response(token)
 
 
-async def _token_response(token: dict) -> TokenResponse:
-    """Build a TokenResponse from raw Spotipy token info."""
+async def _token_response(token: dict[str, Any]) -> TokenResponse:
+    """Build a TokenResponse from raw Spotify token info."""
     user = await spotify.current_user(token["access_token"])
     return TokenResponse(
         access_token=token["access_token"],
+        refresh_token=token.get("refresh_token"),
         expires_in=int(token.get("expires_in", 3600)),
         user={"id": user["id"], "display_name": user.get("display_name")},
     )

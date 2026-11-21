@@ -1,42 +1,77 @@
 "use client";
 
-import { ExternalLink, Trash2 } from "lucide-react";
+import { ArrowUpRight, ListMusic, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import type { PlaylistSummary } from "@/lib/types";
 
 type PlaylistCardProps = {
   playlist: PlaylistSummary;
   onDelete: (id: string) => void;
+  onSelect: (id: string) => void;
 };
 
 const SPOTIFY_URL = "https://open.spotify.com/playlist/";
 
-/** Compact card for a generated playlist. */
-export function PlaylistCard({ playlist, onDelete }: PlaylistCardProps) {
+/** Index-style playlist row — click opens the detail modal. */
+export function PlaylistCard({ playlist, onDelete, onSelect }: PlaylistCardProps) {
+  const [confirming, setConfirming] = useState(false);
+  const isDemo = playlist.spotify_playlist_id.startsWith("demo");
+
+  useEffect(() => {
+    if (!confirming) return;
+    const timer = setTimeout(() => setConfirming(false), 3000);
+    return () => clearTimeout(timer);
+  }, [confirming]);
+
   return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
-      <div>
-        <p className="text-sm font-medium text-slate-900">{playlist.name}</p>
-        <p className="text-xs text-slate-500">{playlist.track_count} lagu</p>
-      </div>
-      <div className="flex items-center gap-1">
-        <a
-          href={`${SPOTIFY_URL}${playlist.spotify_playlist_id}`}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
-          aria-label="Open in Spotify"
-        >
-          <ExternalLink className="h-4 w-4" />
-        </a>
-        <button
-          type="button"
-          onClick={() => onDelete(playlist.id)}
-          className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
-          aria-label="Delete playlist"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+    <div className="group flex items-center justify-between gap-3 border-t border-line px-1 py-3.5 transition-colors first:border-t-0 hover:bg-white/[0.03]">
+      <button
+        type="button"
+        onClick={() => onSelect(playlist.id)}
+        className="focus-ring flex min-w-0 flex-1 items-center gap-3 text-left"
+      >
+        <ListMusic className="h-4 w-4 shrink-0 text-faint" />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-ink">{playlist.name}</p>
+          <p className="text-[11px] text-faint">
+            {playlist.track_count} lagu{isDemo && " · demo"}
+          </p>
+        </div>
+      </button>
+      <div className="flex shrink-0 items-center gap-0.5">
+        {!isDemo && (
+          <a
+            href={`${SPOTIFY_URL}${playlist.spotify_playlist_id}`}
+            target="_blank"
+            rel="noreferrer"
+            className="focus-ring p-2 text-faint transition-colors hover:text-brand"
+            aria-label="Open in Spotify"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+          </a>
+        )}
+        {confirming ? (
+          <button
+            type="button"
+            onClick={() => {
+              setConfirming(false);
+              onDelete(playlist.id);
+            }}
+            className="focus-ring border border-red-400/50 px-3 py-1.5 text-[12px] font-semibold text-red-400 transition-colors hover:bg-red-400/10"
+          >
+            Yakin hapus?
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className="focus-ring p-2 text-faint transition-colors hover:text-red-400"
+            aria-label="Delete playlist"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );

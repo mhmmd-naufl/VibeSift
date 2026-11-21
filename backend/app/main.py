@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from app.api import auth, playlist, stats, sync
 from app.core.config import get_settings
 from app.core.errors import VibeSiftError
+from app.schemas.config import AppConfig
 
 settings = get_settings()
 
@@ -56,7 +57,20 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/config", response_model=AppConfig, tags=["meta"])
+async def app_config() -> AppConfig:
+    """Expose runtime flags the frontend needs to render."""
+    return AppConfig(
+        demo_mode=settings.is_demo,
+        demo_available=True,
+        default_provider=settings.default_ai_provider,
+        default_model=settings.default_ai_model,
+        has_server_ai_key=bool(settings.default_ai_api_key),
+    )
+
+
 app.include_router(auth.router)
+app.include_router(auth.demo_router)
 app.include_router(sync.router)
 app.include_router(playlist.router)
 app.include_router(stats.router)

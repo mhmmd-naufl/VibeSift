@@ -1,6 +1,6 @@
 """Query cached tracks using audio-feature filters."""
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.track import CachedTrack
@@ -28,7 +28,7 @@ def build_query(filters: AudioFilters, limit: int) -> Select:
             stmt = stmt.where(attr >= min_value)
         if max_value is not None:
             stmt = stmt.where(attr <= max_value)
-    return stmt.limit(limit)
+    return stmt.order_by(func.random()).limit(limit)
 
 
 async def select_tracks(
@@ -73,4 +73,7 @@ async def select_tracks_with_fallback(
         tracks = await select_tracks(session, relax_filters(filters, step), limit)
         if len(tracks) >= minimum:
             return tracks, True
+    # Last resort: ignore features entirely so the user still gets a playlist
+    # when many cached tracks are missing feature data.
+    tracks = await select_tracks(session, AudioFilters(), limit)
     return tracks, True

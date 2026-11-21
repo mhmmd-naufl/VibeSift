@@ -8,11 +8,14 @@ from app.api.deps import get_ai_api_key, get_spotify_token
 from app.core.errors import NoTracksError
 from app.db import get_session
 from app.models.playlist import GeneratedPlaylist
-from app.schemas.ai import AudioFilters
+from app.models.track import CachedTrack
+from app.schemas.ai import AudioFilters, PlaylistPlan
 from app.schemas.playlist import (
     GeneratePlaylistRequest,
+    PlaylistDetail,
     PlaylistResponse,
     PlaylistSummary,
+    TrackItem,
 )
 from app.services import ai, playlist as playlist_service, spotify
 
@@ -34,16 +37,21 @@ async def generate_playlist(
         raise NoTracksError("Tidak ada lagu yang cocok. Coba nyalakan sync atau ubah prompt.")
     user = await spotify.current_user(token)
     created = await spotify.create_playlist(
-        token, user["id"], plan.name, plan.description, [track.spotify_id for track in tracks]
+        token, plan.name, plan.description, [track.spotify_id for track in tracks]
     )
-    await _save(session, created, plan, payload.prompt, len(tracks), user["id"])
-    return _response(created, plan, filters, len(tracks), fallback)
+    await _save(session, created, plan, payload.prompt, tracks, user["id"])
+    return _response(created, plan, filters, tracks, fallback)
 
 
 async def _save(
-    session: AsyncSession, created: dict, plan, prompt: str, count: int, user_id: str
+    session: AsyncSession,
+    created: dict,
+    plan: PlaylistPlan,
+    prompt: str,
+    tracks: list[CachedTrack],
+    user_id: str,
 ) -> None:
-    """Persist a generated playlist record."""
+    """Persist a generated playlist record with its track IDs."""
     session.add(
         GeneratedPlaylist(
             spotify_playlist_id=created["id"],
@@ -51,7 +59,8 @@ async def _save(
             description=plan.description,
             prompt=prompt,
             ai_parameters=AudioFilters.model_validate(plan.model_dump()).model_dump(),
-            track_count=count,
+            track_count=len(tracks),
+            track_ids=[track.spotify_id for track in tracks],
             user_id=user_id,
         )
     )
@@ -59,17 +68,30 @@ async def _save(
 
 
 def _response(
-    created: dict, plan, filters: AudioFilters, count: int, fallback_applied: bool
+    created: dict,
+    plan: PlaylistPlan,
+    filters: AudioFilters,
+    tracks: list[CachedTrack],
+    fallback_applied: bool,
 ) -> PlaylistResponse:
     """Map a Spotify playlist and plan into the API response model."""
     return PlaylistResponse(
         playlist_id=created["id"],
         name=plan.name,
         description=plan.description,
-        track_count=count,
+        track_count=len(tracks),
         spotify_url=created.get("external_urls", {}).get("spotify", ""),
         ai_parameters=filters,
         fallback_applied=fallback_applied,
+        tracks=[
+            TrackItem(
+                name=track.name,
+                artists=list(track.artists or []),
+                album=track.album,
+                duration_ms=track.duration_ms,
+            )
+            for track in tracks
+        ],
     )
 
 
@@ -97,6 +119,52 @@ async def list_playlists(
     ]
 
 
+@router.get("/playlists/{playlist_id}", response_model=PlaylistDetail)
+async def playlist_detail(
+    playlist_id: str,
+    token: str = Depends(get_spotify_token),
+    session: AsyncSession = Depends(get_session),
+) -> PlaylistDetail:
+    """Return one playlist with its ordered track list."""
+    user = await spotify.current_user(token)
+    record = await session.get(GeneratedPlaylist, playlist_id)
+    if record is None or record.user_id != user["id"]:
+        raise NoTracksError("Playlist tidak ditemukan.")
+
+    tracks: list[TrackItem] = []
+    if record.track_ids:
+        result = await session.execute(
+            select(CachedTrack).where(CachedTrack.spotify_id.in_(record.track_ids))
+        )
+        by_id = {track.spotify_id: track for track in result.scalars()}
+        tracks = [
+            _track_item(by_id[spotify_id])
+            for spotify_id in record.track_ids
+            if spotify_id in by_id
+        ]
+
+    return PlaylistDetail(
+        id=record.id,
+        spotify_playlist_id=record.spotify_playlist_id,
+        name=record.name,
+        description=record.description,
+        prompt=record.prompt,
+        track_count=record.track_count,
+        created_at=record.created_at,
+        tracks=tracks,
+    )
+
+
+def _track_item(track: CachedTrack) -> TrackItem:
+    """Map a cached track row to the compact API shape."""
+    return TrackItem(
+        name=track.name,
+        artists=list(track.artists or []),
+        album=track.album,
+        duration_ms=track.duration_ms,
+    )
+
+
 @router.delete("/playlists/{playlist_id}", status_code=204)
 async def delete_playlist(
     playlist_id: str,
@@ -104,8 +172,9 @@ async def delete_playlist(
     session: AsyncSession = Depends(get_session),
 ) -> None:
     """Unfollow a playlist on Spotify and remove its local record."""
+    user = await spotify.current_user(token)
     record = await session.get(GeneratedPlaylist, playlist_id)
-    if record is None:
+    if record is None or record.user_id != user["id"]:
         return
     await spotify.unfollow_playlist(token, record.spotify_playlist_id)
     await session.delete(record)

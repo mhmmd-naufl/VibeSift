@@ -2,11 +2,11 @@ import type { HTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
-/** shadcn-style surface container. */
+/** Hairline-bordered panel on the dark canvas — no radius, no shadow. */
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("rounded-xl border border-slate-200 bg-white p-5 shadow-sm", className)}
+      className={cn("border border-line bg-panel", className)}
       {...props}
     />
   );

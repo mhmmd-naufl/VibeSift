@@ -66,6 +66,18 @@ async def test_tempo_dropped_when_too_few_tracks() -> None:
 
 
 @pytest.mark.asyncio
+async def test_tracks_without_features_are_last_resort() -> None:
+    """Cached tracks missing feature data still reach the user as a fallback."""
+    tracks = [CachedTrack(spotify_id=f"bare-{i}", name=f"Bare {i}", artists=[]) for i in range(5)]
+    async with _temp_session(tracks) as session:
+        found, fallback = await playlist_service.select_tracks_with_fallback(
+            session, AudioFilters(min_energy=0.9)
+        )
+    assert fallback is True
+    assert len(found) == 5
+
+
+@pytest.mark.asyncio
 async def test_empty_db_returns_nothing() -> None:
     """Empty cache yields no tracks so the API can raise its 404-style error."""
     async with _temp_session([]) as session:

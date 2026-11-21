@@ -5,8 +5,10 @@ import json
 import litellm
 from pydantic import ValidationError
 
+from app.core.config import get_settings
 from app.core.errors import AIInvalidJSONError, UpstreamError
 from app.schemas.ai import PlaylistPlan
+from app.services import demo_data
 
 AI_SYSTEM_PROMPT = """
 Kamu adalah kurator musik Spotify expert.
@@ -33,6 +35,8 @@ async def prompt_to_plan(
     prompt: str, provider: str, model: str, api_key: str
 ) -> PlaylistPlan:
     """Translate a prompt into a PlaylistPlan, retrying once on invalid JSON."""
+    if get_settings().is_demo and api_key == "demo-key":
+        return PlaylistPlan.model_validate(demo_data.plan_for_prompt(prompt))
     for attempt in range(2):
         content = await _complete(prompt, provider, model, api_key)
         try:

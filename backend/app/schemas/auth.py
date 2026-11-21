@@ -14,6 +14,7 @@ class TokenResponse(BaseModel):
     """Response for the OAuth callback and token refresh."""
 
     access_token: str
+    refresh_token: str | None = None
     expires_in: int
     user: SpotifyUser
 

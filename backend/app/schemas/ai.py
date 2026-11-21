@@ -1,6 +1,16 @@
 """Schema for the audio-feature filters produced by the AI."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+# Feature names that come as a min/max pair.
+_BOUND_FEATURES = (
+    "energy",
+    "valence",
+    "danceability",
+    "acousticness",
+    "instrumentalness",
+    "tempo",
+)
 
 
 class AudioFilters(BaseModel):
@@ -22,6 +32,17 @@ class AudioFilters(BaseModel):
     max_instrumentalness: float | None = Field(default=None, ge=0, le=1)
     min_tempo: float | None = Field(default=None, ge=0)
     max_tempo: float | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def _swap_inverted_bounds(self) -> "AudioFilters":
+        """Swap a min/max pair that the AI returned inverted."""
+        for feature in _BOUND_FEATURES:
+            low = getattr(self, f"min_{feature}")
+            high = getattr(self, f"max_{feature}")
+            if low is not None and high is not None and low > high:
+                setattr(self, f"min_{feature}", high)
+                setattr(self, f"max_{feature}", low)
+        return self
 
 
 class PlaylistPlan(AudioFilters):

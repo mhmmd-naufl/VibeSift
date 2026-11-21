@@ -3,5 +3,28 @@
 @tailwind utilities;
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-canvas text-ink antialiased;
+}
+
+::selection {
+  @apply bg-brand/30;
+}
+
+/* Slim, unobtrusive scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: theme("colors.line") transparent;
+}
+
+/* Hide scrollbar for horizontal chip rails */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Thin light focus ring for dark surfaces */
+.focus-ring {
+  @apply outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
 }

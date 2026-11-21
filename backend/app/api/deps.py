@@ -2,14 +2,20 @@
 
 from fastapi import Header
 
+from app.core.config import get_settings
 from app.core.errors import AIKeyMissingError, SpotifyTokenMissingError
 
 
 async def get_ai_api_key(x_ai_api_key: str | None = Header(default=None)) -> str:
-    """Extract the user's AI API key from the request headers."""
-    if not x_ai_api_key:
-        raise AIKeyMissingError("Header X-AI-API-Key wajib diisi.")
-    return x_ai_api_key
+    """Extract the user's AI API key, allowing a missing key in demo mode."""
+    settings = get_settings()
+    if x_ai_api_key:
+        return x_ai_api_key
+    if settings.default_ai_api_key:
+        return settings.default_ai_api_key
+    if settings.is_demo:
+        return "demo-key"
+    raise AIKeyMissingError("Header X-AI-API-Key wajib diisi.")
 
 
 async def get_spotify_token(authorization: str | None = Header(default=None)) -> str:

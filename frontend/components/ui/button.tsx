@@ -2,23 +2,26 @@ import type { ButtonHTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
-type Variant = "default" | "outline" | "ghost";
+type Variant = "default" | "outline" | "ghost" | "brand";
 
 const VARIANTS: Record<Variant, string> = {
-  default: "bg-brand text-white hover:bg-brand-dark",
-  outline: "border border-slate-300 text-slate-800 hover:bg-slate-100",
-  ghost: "text-slate-700 hover:bg-slate-100",
+  default: "bg-ink text-canvas hover:bg-white",
+  brand: "bg-brand text-canvas hover:bg-brand-dark",
+  outline: "border border-white/25 bg-transparent text-ink hover:border-white/50 hover:bg-white/5",
+  ghost: "text-sub hover:bg-white/5 hover:text-ink",
 };
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant };
 
-/** shadcn-style button. */
+/** Swiss-style rectangular button with hard-edge press feedback. */
 export function Button({ className, variant = "default", ...props }: ButtonProps) {
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium",
-        "transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "focus-ring inline-flex items-center justify-center gap-2 px-5 py-2.5",
+        "text-[13px] font-semibold",
+        "transition-colors duration-150",
+        "active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40",
         VARIANTS[variant],
         className,
       )}

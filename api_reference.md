@@ -189,6 +189,20 @@ Statistik ringkas untuk dashboard.
 
 ---
 
+## Meta
+
+### `GET /api/config`
+Konfigurasi runtime yang dibutuhkan frontend.
+
+**Response `200`:**
+```json
+{
+  "demo_mode": false,
+  "default_provider": "gemini",
+  "default_model": "gemini-2.0-flash"
+}
+```
+
 ## Format Error
 
 Semua error memakai bentuk konsisten:

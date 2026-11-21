@@ -1,111 +1,93 @@
-"""Thin async wrapper around Spotipy for the operations VibeSift needs."""
+"""Spotify service facade.
 
-import asyncio
+Dispatches to the real Web API client or the offline demo adapter based on
+`SPOTIFY_MODE`. Routes only talk to this module.
+"""
+
 from typing import Any
 
-from spotipy import Spotify, SpotifyOAuth
-from spotipy.exceptions import SpotifyException
-
 from app.core.config import get_settings
-from app.core.errors import SpotifyRateLimitError, UpstreamError
-
-SCOPES = "user-library-read playlist-modify-public playlist-modify-private"
-
-_PAGE_LIMIT = 50
-_FEATURE_CHUNK = 100
+from app.services import demo, features, spotify_api
 
 
-def _oauth() -> SpotifyOAuth:
-    """Build a SpotifyOAuth helper from application settings."""
-    settings = get_settings()
-    return SpotifyOAuth(
-        client_id=settings.spotify_client_id,
-        client_secret=settings.spotify_client_secret,
-        redirect_uri=settings.spotify_redirect_uri,
-        scope=SCOPES,
-        show_dialog=True,
-    )
+def _is_demo() -> bool:
+    """Return True when the whole backend runs in demo mode."""
+    return get_settings().is_demo
+
+
+def _use_demo(token: str | None = None) -> bool:
+    """Demo applies globally, or per-session for `demo-` prefixed tokens."""
+    return _is_demo() or bool(token and token.startswith("demo-"))
 
 
 def authorize_url() -> str:
-    """Return the Spotify authorization URL to redirect the user to."""
-    return _oauth().get_authorize_url()
+    """Return the URL the frontend should redirect the user to for login."""
+    return demo.authorize_url() if _is_demo() else spotify_api.authorize_url()
 
 
 async def exchange_code(code: str) -> dict[str, Any]:
-    """Exchange an OAuth code for token info."""
-    oauth = _oauth()
-    return await _run(oauth.get_access_token, code, as_dict=True)
+    """Exchange an OAuth code for tokens and profile information."""
+    return await demo.exchange_code(code) if _is_demo() else await spotify_api.exchange_code(code)
 
 
 async def refresh_access_token(refresh_token: str) -> dict[str, Any]:
-    """Use a refresh token to obtain a new access token."""
-    oauth = _oauth()
-    return await _run(oauth.refresh_access_token, refresh_token)
+    """Exchange a refresh token for a new access token."""
+    if _use_demo(refresh_token):
+        return await demo.refresh_access_token(refresh_token)
+    return await spotify_api.refresh_access_token(refresh_token)
 
 
 async def current_user(access_token: str) -> dict[str, Any]:
-    """Return the authenticated Spotify user's profile."""
-    return await _run(_client(access_token).current_user)
+    """Return the authenticated Spotify profile."""
+    return (
+        await demo.current_user(access_token)
+        if _use_demo(access_token)
+        else await spotify_api.current_user(access_token)
+    )
 
 
-async def fetch_saved_tracks(access_token: str) -> list[dict[str, Any]]:
-    """Fetch every saved (liked) track, handling pagination."""
-    sp = _client(access_token)
-    items: list[dict[str, Any]] = []
-    page = await _run(sp.current_user_saved_tracks, _PAGE_LIMIT)
-    while page:
-        items.extend(page.get("items", []))
-        page = await _run(sp.next, page) if page.get("next") else None
-    return items
+async def fetch_saved_tracks(
+    access_token: str, on_progress: Any = None
+) -> list[dict[str, Any]]:
+    """Return every saved track, newest first."""
+    return (
+        await demo.fetch_saved_tracks(access_token)
+        if _use_demo(access_token)
+        else await spotify_api.fetch_saved_tracks(access_token, on_progress)
+    )
 
 
 async def fetch_audio_features(
-    access_token: str, track_ids: list[str]
-) -> list[dict[str, Any]]:
-    """Fetch audio features for track IDs in chunks of 100."""
-    sp = _client(access_token)
-    features: list[dict[str, Any]] = []
-    for start in range(0, len(track_ids), _FEATURE_CHUNK):
-        chunk = track_ids[start : start + _FEATURE_CHUNK]
-        result = await _run(sp.audio_features, chunk) or []
-        features.extend(feature for feature in result if feature)
-    return features
+    access_token: str,
+    track_ids: list[str],
+    on_progress: Any = None,
+) -> dict[str, dict[str, float]]:
+    """Return audio features keyed by Spotify track ID."""
+    if _use_demo(access_token):
+        return demo.fetch_audio_features(track_ids)
+    return await features.fetch_audio_features(track_ids, on_progress)
 
 
 async def create_playlist(
-    access_token: str, user_id: str, name: str, description: str, track_ids: list[str]
+    access_token: str, name: str, description: str, track_ids: list[str]
 ) -> dict[str, Any]:
-    """Create a private playlist and add the given tracks to it."""
-    sp = _client(access_token)
-    playlist = await _run(
-        sp.user_playlist_create, user_id, name, False, description
-    )
-    uris = [f"spotify:track:{track_id}" for track_id in track_ids]
-    for start in range(0, len(uris), _FEATURE_CHUNK):
-        await _run(sp.playlist_add_items, playlist["id"], uris[start : start + _FEATURE_CHUNK])
+    """Create a playlist, add the tracks, and return the playlist payload."""
+    if _use_demo(access_token):
+        return await demo.create_playlist(access_token, name, description)
+    playlist = await spotify_api.create_playlist(access_token, name, description)
+    if track_ids:
+        await spotify_api.add_items(access_token, playlist["id"], track_ids)
     return playlist
 
 
 async def unfollow_playlist(access_token: str, playlist_id: str) -> None:
-    """Remove a playlist from the user's Spotify library.
-
-    Spotify does not expose true deletion; unfollowing is the closest
-    available action and removes it from the user's account view.
-    """
-    await _run(_client(access_token).current_user_unfollow_playlist, playlist_id)
-
-
-def _client(access_token: str) -> Spotify:
-    """Return an authenticated Spotipy client."""
-    return Spotify(auth=access_token)
+    """Remove a playlist from the user's Spotify library."""
+    if _use_demo(access_token):
+        await demo.unfollow_playlist(access_token, playlist_id)
+        return
+    await spotify_api.unfollow_playlist(access_token, playlist_id)
 
 
-async def _run(func: Any, *args: Any, **kwargs: Any) -> Any:
-    """Run a blocking Spotipy call in a worker thread with error mapping."""
-    try:
-        return await asyncio.to_thread(func, *args, **kwargs)
-    except SpotifyException as exc:
-        if exc.http_status == 429:
-            raise SpotifyRateLimitError("Terkena rate limit Spotify.") from exc
-        raise UpstreamError("Spotify API gagal merespons.") from exc
+async def demo_session() -> dict[str, Any]:
+    """Issue a demo session token regardless of the global mode."""
+    return await demo.exchange_code("demo")

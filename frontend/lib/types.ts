@@ -7,8 +7,17 @@ export type SpotifyUser = {
 
 export type TokenResponse = {
   access_token: string;
+  refresh_token: string | null;
   expires_in: number;
   user: SpotifyUser;
+};
+
+export type AppConfig = {
+  demo_mode: boolean;
+  demo_available?: boolean;
+  default_provider: string;
+  default_model: string;
+  has_server_ai_key?: boolean;
 };
 
 export type Stats = {
@@ -37,6 +46,13 @@ export type AudioFilters = {
   max_tempo?: number | null;
 };
 
+export type TrackItem = {
+  name: string;
+  artists: string[];
+  album: string | null;
+  duration_ms: number | null;
+};
+
 export type PlaylistResponse = {
   playlist_id: string;
   name: string;
@@ -45,6 +61,7 @@ export type PlaylistResponse = {
   spotify_url: string;
   ai_parameters: AudioFilters;
   fallback_applied?: boolean;
+  tracks?: TrackItem[];
 };
 
 export type PlaylistSummary = {
@@ -55,4 +72,25 @@ export type PlaylistSummary = {
   created_at: string;
 };
 
-export type AiProvider = "gemini" | "groq" | "openai" | "anthropic" | "ollama";
+export type PlaylistDetail = PlaylistSummary & {
+  description: string | null;
+  prompt: string;
+  tracks: TrackItem[];
+};
+
+export type SyncProgressInfo = {
+  phase?: "fetching_tracks" | "fetching_features" | "saving" | "done";
+  tracks?: number;
+  features_done?: number;
+  features_total?: number;
+  done?: boolean;
+  error?: string | null;
+};
+
+export type AiProvider =
+  | "gemini"
+  | "groq"
+  | "openai"
+  | "anthropic"
+  | "ollama"
+  | "openrouter";

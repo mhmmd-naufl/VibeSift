@@ -23,5 +23,6 @@ class GeneratedPlaylist(Base):
     prompt: Mapped[str] = mapped_column(Text)
     ai_parameters: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     track_count: Mapped[int] = mapped_column(Integer, default=0)
+    track_ids: Mapped[list | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     user_id: Mapped[str] = mapped_column(String(255), index=True)
