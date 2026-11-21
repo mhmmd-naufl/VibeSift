@@ -1,6 +1,6 @@
 # VibeSift
 
-**AI playlist curator for Spotify.** Describe a mood in one sentence — VibeSift finds matching songs from your Liked Songs and builds the playlist for you.
+**AI playlist curator untuk Spotify — proyek saya.** Cukup ketik satu kalimat tentang mood, VibeSift mencari lagu yang cocok dari Liked Songs kamu dan langsung membuatkan playlistnya.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/frontend-Next.js%2014-000000)](https://nextjs.org)
@@ -8,36 +8,36 @@
 [![TypeScript](https://img.shields.io/badge/typescript-strict-3178C6)](https://www.typescriptlang.org)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org)
 
-Live demo: _[add your deployed URL here]_ · Built with the philosophy of **"Fixed Core, Flexible AI"** — a simple, opinionated product core with a pluggable AI layer.
+Live demo: _[isi URL deployment di sini]_ · Dibangun dengan filosofi **"Fixed Core, Flexible AI"** — inti produk yang sederhana dan opinionated, dengan lapisan AI yang bisa diganti-ganti.
 
 ---
 
-## What it does
+## Apa yang dilakukan aplikasi ini
 
-1. You log in with Spotify (or try the instant demo mode).
-2. VibeSift syncs your Liked Songs — track metadata plus audio features.
-3. You type a prompt like *"lagu akustik buat kerja malam"* or pick a mood preset.
-4. An LLM interprets the prompt into audio-feature filters; a scoring pipeline ranks your library.
-5. A Spotify playlist is created — or stored locally in demo mode — and you can inspect every track it picked.
+1. User login dengan Spotify — atau langsung coba mode demo instan.
+2. VibeSift menyinkronkan Liked Songs: metadata lagu plus audio features.
+3. User mengetik prompt seperti *"lagu akustik buat kerja malam"* atau memilih preset mood.
+4. LLM menerjemahkan prompt menjadi filter audio-feature; pipeline scoring meranking library user.
+5. Playlist Spotify dibuat — atau disimpan lokal di mode demo — dan user bisa melihat seluruh tracklist-nya.
 
-## Why it exists
+## Kenapa saya membangun ini
 
-Playlist creation tools either demand manual curation or lock you into a single AI provider. VibeSift keeps the core deliberately small — sync, prompt, score, playlist — while the AI layer stays swappable: OpenRouter, Gemini, Groq, OpenAI, Anthropic, Ollama, or any OpenAI-compatible endpoint. The same applies to Spotify itself: the app ships with a built-in demo adapter so the full product is explorable without credentials, and real OAuth slots in alongside it.
+Tools pembuatan playlist yang ada pilihannya cuma dua: kurasi manual yang melelahkan, atau tools yang mengunci user ke satu AI provider. Saya ingin keduanya sekaligus — core yang kecil dan jelas (sync → prompt → scoring → playlist), tapi layer AI-nya bebas diganti: OpenRouter, Gemini, Groq, OpenAI, Anthropic, Ollama, atau endpoint OpenAI-compatible mana pun. Hal yang sama berlaku untuk Spotify: saya bangun demo adapter bawaan supaya seluruh produk bisa dicoba tanpa kredensial, dan OAuth asli menyatu di backend yang sama.
 
-## Key design decisions
+## Keputusan desain penting
 
-| Decision | Rationale |
+| Keputusan | Alasan |
 |---|---|
-| **Hybrid demo + real auth** | One backend serves both an instant demo session (`demo-` tokens routed to an offline adapter) and genuine Spotify OAuth. Visitors can try the product immediately; a small allowlist of real accounts gets the real flow — useful under Spotify's ~5-user development-mode cap. |
-| **Curated demo catalog** | 234 well-known tracks across 13 genres with plausible audio features — generated results feel real instead of random. |
-| **BYOK + server-side key** | Per-user AI keys live only in the browser (never stored server-side); a shared `DEFAULT_AI_API_KEY` lets casual users generate playlists with zero setup. |
-| **LiteLLM abstraction** | One API surface for every provider — switching providers is a settings change, not a code change. |
-| **Alembic migrations** | `cached_tracks`, `generated_playlists` (with persisted `track_ids` for replayable tracklists), `user_sessions`. |
-| **Spotify-free audio features** | Spotify deprecated its audio-features endpoint; features are fetched from ReccoBeats instead, keeping the app free-tier viable. |
+| **Auth hybrid: demo + Spotify asli** | Satu backend melayani dua jenis sesi: demo instan (token `demo-` dirutekan ke adapter offline) dan OAuth Spotify sungguhan. Visitor bisa langsung mencoba; beberapa akun terpilih tetap dapat flow asli — penting karena Spotify Development Mode membatasi app ke ~5 user allowlist. |
+| **Katalog demo terkurasi** | 234 lagu terkenal lintas 13 genre dengan audio features yang plausible — hasil generate terasa nyata, bukan acak. |
+| **BYOK + server-side key** | API key milik user hanya disimpan di browser (tidak pernah di server); `DEFAULT_AI_API_KEY` opsional membuat user awam bisa generate tanpa setup apa pun. |
+| **Abstraksi LiteLLM** | Satu API surface untuk semua provider — ganti provider cukup dari halaman Settings, bukan ubah kode. |
+| **Migrasi Alembic** | Tiga tabel: `cached_tracks`, `generated_playlists` (dengan `track_ids` tersimpan supaya tracklist playlist lama tetap bisa dibuka), `user_sessions`. |
+| **Audio features tanpa Spotify** | Endpoint audio-features Spotify sudah deprecated; saya ambil dari ReccoBeats supaya aplikasi tetap free-tier friendly. |
 
 ## Tech stack
 
-| Layer | Technology |
+| Layer | Teknologi |
 |---|---|
 | Frontend | Next.js 14 (App Router), TypeScript strict, Tailwind CSS, Zustand |
 | Backend | FastAPI, Python 3.11+, HTTPX, LiteLLM, SQLAlchemy 2 (async), Alembic |
@@ -45,9 +45,9 @@ Playlist creation tools either demand manual curation or lock you into a single 
 | AI | OpenRouter (default), Gemini, Groq, OpenAI, Anthropic, Ollama |
 | Auth | Spotify OAuth 2.0 Authorization Code flow |
 
-## Quickstart
+## Cara menjalankan
 
-**Prerequisites:** Node.js LTS, Python 3.11+, and optionally a Spotify app + AI key.
+**Yang dibutuhkan:** Node.js LTS, Python 3.11+, dan opsional Spotify app + AI key.
 
 ```bash
 git clone https://github.com/mhmmd-naufl/VibeSift.git
@@ -61,9 +61,9 @@ cd backend
 python -m venv .venv
 .venv\Scripts\activate          # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env            # fill in Spotify credentials if using real mode
+cp .env.example .env            # isi kredensial Spotify kalau mau mode real
 alembic upgrade head
-uvicorn app.main:app --reload   # http://127.0.0.1:8000 — docs at /docs
+uvicorn app.main:app --reload   # http://127.0.0.1:8000 — docs di /docs
 ```
 
 ### Frontend
@@ -75,23 +75,23 @@ npm install
 npm run dev                     # http://127.0.0.1:3000
 ```
 
-**Demo-only setup:** leave Spotify credentials blank — click **Coba Demo** on the landing page and the whole flow works offline.
+**Setup demo saja:** kosongkan kredensial Spotify — klik **Coba Demo** di landing page dan seluruh flow jalan offline.
 
-### Spotify setup (real mode only)
+### Setup Spotify (hanya mode real)
 
-1. Create an app at the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
-2. Register the redirect URI `http://127.0.0.1:3000/auth/callback` (production: your deployed domain).
-3. Set `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI`, and `SPOTIFY_MODE=real` in `backend/.env`.
-4. Note: Spotify Development Mode requires the app owner to have Premium and caps allowlisted users (~5) until Extended Quota Mode is approved.
+1. Buat app di [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+2. Daftarkan redirect URI `http://127.0.0.1:3000/auth/callback` (produksi: domain deployment kamu).
+3. Isi `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI`, dan `SPOTIFY_MODE=real` di `backend/.env`.
+4. Catatan: Spotify Development Mode mewajibkan owner app punya Premium dan membatasi user allowlist (~5) sampai Extended Quota Mode disetujui.
 
-## Usage
+## Cara pakai
 
-1. Open the app — **Login with Spotify** for the real flow, or **Coba Demo** for an instant sample session.
-2. Click **Sync** — the UI shows live progress (fetching tracks → audio features → saving).
-3. Type a mood or pick a preset chip, then **Generate Playlist**.
-4. Inspect the full tracklist in the result panel, or reopen any saved playlist from the index.
+1. Buka aplikasi — **Login with Spotify** untuk flow asli, atau **Coba Demo** untuk sesi contoh instan.
+2. Klik **Sync** — UI menampilkan progress real-time (fetch lagu → audio features → simpan).
+3. Ketik mood atau pilih chip preset, lalu **Generate Playlist**.
+4. Lihat tracklist lengkap di panel hasil, atau buka ulang playlist tersimpan dari index.
 
-## Project structure
+## Struktur proyek
 
 ```text
 ├── frontend/
@@ -104,9 +104,9 @@ npm run dev                     # http://127.0.0.1:3000
 │   ├── app/services/      # spotify facade, spotify_api, ai, playlist scoring,
 │   │                      # features (ReccoBeats), demo adapter, demo_data, sync_progress
 │   └── alembic/           # migrations
-├── architecture.md        # system design and data flow
-├── api_reference.md       # endpoint contracts
-└── prd.md / agents.md     # product requirements and coding standards
+├── architecture.md        # desain sistem dan alur data
+├── api_reference.md       # kontrak endpoint
+└── prd.md / agents.md     # product requirements dan standar coding
 ```
 
 ## Testing
@@ -119,30 +119,30 @@ cd frontend
 npx tsc --noEmit && npm run build
 ```
 
-## Deployment notes
+## Catatan deployment
 
 - Frontend → Vercel; backend → Railway/Render/Fly; database → Supabase Postgres.
-- Set `DATABASE_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_API_URL`, `SPOTIFY_REDIRECT_URI` (production domain) for each environment.
-- `SPOTIFY_MODE=real` + `DEFAULT_AI_PROVIDER`/`DEFAULT_AI_MODEL`/`DEFAULT_AI_API_KEY` gives a working hybrid deployment: public demo sessions plus allowlisted real accounts.
-- Sync progress is stored in-memory per process — fine for a single instance; use Redis if you scale horizontally.
-- See [Troubleshooting](#troubleshooting) for common setup issues.
+- Set `DATABASE_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_API_URL`, dan `SPOTIFY_REDIRECT_URI` (domain produksi) untuk tiap environment.
+- `SPOTIFY_MODE=real` + `DEFAULT_AI_PROVIDER`/`DEFAULT_AI_MODEL`/`DEFAULT_AI_API_KEY` menghasilkan deployment hybrid yang berfungsi: sesi demo publik plus akun asli terpilih.
+- Sync progress disimpan in-memory per proses — cukup untuk single instance; pakai Redis kalau scale horizontal.
+- Lihat [Troubleshooting](#troubleshooting) untuk masalah setup umum.
 
 ## Troubleshooting
 
-| Symptom | Fix |
+| Gejala | Solusi |
 |---|---|
-| `alembic upgrade head` says table already exists | `alembic stamp head` once, then `upgrade head` |
-| Frontend can't reach backend (CORS) | Open via the configured origin; check `CORS_ORIGINS` |
-| Spotify redirect error | Redirect URI in the dashboard must match `SPOTIFY_REDIRECT_URI` exactly |
-| Spotify login 403 | Dev Mode: owner needs Premium; user must be allowlisted |
-| Login doesn't reach Spotify | Backend is in `SPOTIFY_MODE=demo` — set `real` and restart |
-| `AI_KEY_MISSING` | Add a key in Settings, or set `DEFAULT_AI_API_KEY` server-side |
-| Free AI model rate-limited | Pick another `:free` model or use a paid key |
+| `alembic upgrade head` bilang tabel sudah ada | Jalankan `alembic stamp head` sekali, lalu `upgrade head` |
+| Frontend tidak bisa reach backend (CORS) | Buka lewat origin yang terdaftar; cek `CORS_ORIGINS` |
+| Spotify redirect error | Redirect URI di dashboard harus sama persis dengan `SPOTIFY_REDIRECT_URI` |
+| Spotify login 403 | Dev Mode: owner butuh Premium; user harus di-allowlist |
+| Login tidak sampai ke Spotify | Backend masih `SPOTIFY_MODE=demo` — set `real` lalu restart |
+| `AI_KEY_MISSING` | Tambah key di Settings, atau set `DEFAULT_AI_API_KEY` di server |
+| Model AI gratis kena rate limit | Ganti ke model `:free` lain atau pakai key berbayar |
 
-## Contributing
+## Kontribusi
 
-See [agents.md](./agents.md) for coding standards and [SISA_TUGAS.md](./SISA_TUGAS.md) for open tasks. Branch from `main`, keep functions small, and open a PR.
+Lihat [agents.md](./agents.md) untuk standar coding dan [SISA_TUGAS.md](./SISA_TUGAS.md) untuk task yang terbuka. Branch dari `main`, jaga fungsi tetap kecil, dan buka PR.
 
-## License
+## Lisensi
 
 [MIT](LICENSE) — open source.
