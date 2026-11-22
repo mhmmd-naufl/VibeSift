@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/typescript-strict-3178C6)](https://www.typescriptlang.org)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org)
 
-Live demo: _[*soon*_] · Dibangun dengan filosofi **"Fixed Core, Flexible AI"**: inti produk yang sederhana dan opinionated, dengan lapisan AI yang bisa diganti-ganti.
+Live demo: _[*[soon](https://vibesift-one.vercel.app/)*_] · Dibangun dengan filosofi **"Fixed Core, Flexible AI"**: inti produk yang sederhana dan opinionated, dengan lapisan AI yang bisa diganti-ganti.
 
 ---
 
