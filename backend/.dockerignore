@@ -1,5 +1,7 @@
 __pycache__/
 *.pyc
+.venv/
+venv/
 .env
 vibesift.db
 alembic/versions/__pycache__/

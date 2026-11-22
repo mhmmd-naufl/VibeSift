@@ -17,8 +17,11 @@ target_metadata = Base.metadata
 
 
 def _sync_url(async_url: str) -> str:
-    """Convert an async DB URL to its sync equivalent for Alembic."""
-    return async_url.replace("+aiosqlite", "").replace("+asyncpg", "")
+    """Convert an async DB URL to its sync psycopg2 equivalent for Alembic."""
+    url = async_url.replace("+aiosqlite", "").replace("+asyncpg", "")
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg2://" + url.removeprefix("postgresql://")
+    return url
 
 
 def run_migrations_offline() -> None:
