@@ -29,7 +29,7 @@ Tools pembuatan playlist yang ada pilihannya cuma dua: kurasi manual yang melela
 | Keputusan | Alasan |
 |---|---|
 | **Auth hybrid: demo + Spotify asli** | Satu backend melayani dua jenis sesi: demo instan (token `demo-` dirutekan ke adapter offline) dan OAuth Spotify sungguhan. Visitor bisa langsung mencoba; beberapa akun terpilih tetap dapat flow asli. Ini penting karena Spotify Development Mode membatasi app ke ~5 user allowlist. |
-| **Katalog demo terkurasi** | 234 lagu terkenal lintas 13 genre dengan audio features yang plausible, jadi hasil generate terasa nyata, bukan acak. |
+| **Katalog demo terkurasi** | 518 lagu terkenal lintas 18 genre dengan audio features yang plausible, jadi hasil generate terasa nyata, bukan acak. |
 | **BYOK + server-side key** | API key milik user hanya disimpan di browser (tidak pernah di server); `DEFAULT_AI_API_KEY` opsional membuat user awam bisa generate tanpa setup apa pun. |
 | **Abstraksi LiteLLM** | Satu API surface untuk semua provider. Ganti provider cukup dari halaman Settings, bukan ubah kode. |
 | **Migrasi Alembic** | Tiga tabel: `cached_tracks`, `generated_playlists` (dengan `track_ids` tersimpan supaya tracklist playlist lama tetap bisa dibuka), `user_sessions`. |

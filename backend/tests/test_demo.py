@@ -16,7 +16,7 @@ def test_inverted_bounds_are_swapped() -> None:
 def test_demo_catalog_is_complete() -> None:
     """Every demo track has metadata and a full feature vector."""
     tracks = demo_data.saved_tracks()
-    assert len(tracks) == 240
+    assert len(tracks) == 518
     for item in tracks:
         track_id = item["track"]["id"]
         assert demo_data.DEMO_FEATURES[track_id]["tempo"] > 0
