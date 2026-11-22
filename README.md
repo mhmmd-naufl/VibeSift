@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/typescript-strict-3178C6)](https://www.typescriptlang.org)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org)
 
-Live demo: _[*[soon](https://vibesift-one.vercel.app/)*_] · Dibangun dengan filosofi **"Fixed Core, Flexible AI"**: inti produk yang sederhana dan opinionated, dengan lapisan AI yang bisa diganti-ganti.
+Live demo: [vibesift-one.vercel.app](https://vibesift-one.vercel.app/) · Dibangun dengan filosofi **"Fixed Core, Flexible AI"**: inti produk yang sederhana dan opinionated, dengan lapisan AI yang bisa diganti-ganti.
 
 ---
 
@@ -121,8 +121,11 @@ npx tsc --noEmit && npm run build
 
 ## Catatan deployment
 
-- Frontend → Vercel; backend → Railway/Render/Fly; database → Supabase Postgres.
-- Set `DATABASE_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_API_URL`, dan `SPOTIFY_REDIRECT_URI` (domain produksi) untuk tiap environment.
+Setup produksi saat ini:
+
+- **Frontend** → [Vercel](https://vibesift-one.vercel.app/). Root Directory project **wajib `frontend`** — kalau masih `.` (repo root), Vercel men-deploy file statis dan situs return 404.
+- **Backend** → [Fly.io](https://vibesift-api.fly.dev) (`vibesift-api`).
+- Set `DATABASE_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_API_URL` (di Vercel env), dan `SPOTIFY_REDIRECT_URI` (domain produksi) untuk tiap environment.
 - `SPOTIFY_MODE=real` + `DEFAULT_AI_PROVIDER`/`DEFAULT_AI_MODEL`/`DEFAULT_AI_API_KEY` menghasilkan deployment hybrid yang berfungsi: sesi demo publik plus akun asli terpilih.
 - Sync progress disimpan in-memory per proses. Cukup untuk single instance; pakai Redis kalau scale horizontal.
 - Lihat [Troubleshooting](#troubleshooting) untuk masalah setup umum.
