@@ -5,6 +5,7 @@ primary_region = "sin" # Singapore — ganti kalau mau region lain
 
 [env]
   PORT = "8080"
+  DATABASE_URL = "sqlite+aiosqlite:////data/vibesift.db"
 
 [http_service]
   internal_port = 8080
@@ -25,5 +26,9 @@ primary_region = "sin" # Singapore — ganti kalau mau region lain
   cpu_kind = "shared"
   cpus = 1
 
-[deploy]
-  release_command = "alembic upgrade head"
+[mounts]
+  source = "vibesift_data"
+  destination = "/data"
+
+# Catatan: release_command dilepas karena mesin release tidak mendapat volume.
+# Jalankan migrasi manual via: fly ssh console -a vibesift-api -C "alembic upgrade head"

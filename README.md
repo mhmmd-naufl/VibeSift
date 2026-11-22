@@ -124,7 +124,8 @@ npx tsc --noEmit && npm run build
 Setup produksi saat ini:
 
 - **Frontend** → [Vercel](https://vibesift-one.vercel.app/). Root Directory project **wajib `frontend`** — kalau masih `.` (repo root), Vercel men-deploy file statis dan situs return 404.
-- **Backend** → [Fly.io](https://vibesift-api.fly.dev) (`vibesift-api`).
+- **Backend** → [Fly.io](https://vibesift-api.fly.dev) (`vibesift-api`), 1 mesin `shared-cpu-1x` selalu nyala (`min_machines_running = 1`).
+- **Database** → SQLite di Fly volume `vibesift_data` (mount `/data`), bukan Postgres terpisah. Migrasi jalan manual: `fly ssh console -a vibesift-api -C "alembic upgrade head"` (release_command tidak bisa akses volume).
 - Set `DATABASE_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_API_URL` (di Vercel env), dan `SPOTIFY_REDIRECT_URI` (domain produksi) untuk tiap environment.
 - `SPOTIFY_MODE=real` + `DEFAULT_AI_PROVIDER`/`DEFAULT_AI_MODEL`/`DEFAULT_AI_API_KEY` menghasilkan deployment hybrid yang berfungsi: sesi demo publik plus akun asli terpilih.
 - Sync progress disimpan in-memory per proses. Cukup untuk single instance; pakai Redis kalau scale horizontal.
