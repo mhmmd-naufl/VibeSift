@@ -110,6 +110,12 @@
 - ❌ Prompt terlalu vague (AI jadi hallucinate)
 - ❌ Tidak validasi output JSON dari AI
 
+## 🤝 Git & Commit Rules
+
+- **JANGAN** menambahkan trailer `Co-Authored-By`, `Generated with`, atau atribusi AI/agent lain di commit message — commit harus hanya atas nama author repo.
+- Jangan push ke remote kecuali diminta eksplisit oleh user.
+- Jangan force-push atau rewrite history tanpa konfirmasi user.
+
 ## ✅ Checklist Sebelum Generate Code
 
 Sebelum minta AI agent generate kode, pastikan:
